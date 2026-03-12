@@ -1,0 +1,41 @@
+# ── Environment ────────────────────────────────────────────────
+.env
+.env.local
+.env.production
+*.env
+
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+.pytest_cache/
+.mypy_cache/
+
+# ── Node / React ───────────────────────────────────────────────
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ── Database ───────────────────────────────────────────────────
+*.db
+*.sqlite3
+postgres_data/
+
+# ── Docker ─────────────────────────────────────────────────────
+docker/postgres_data/
+docker/redis_data/
+
+# ── OS ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp

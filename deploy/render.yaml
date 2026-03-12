@@ -1,0 +1,45 @@
+# ──────────────────────────────────────────────────────────────────────────
+#  render.yaml — DevForge OS Free-Tier Deploy on Render.com
+#  Docs: https://render.com/docs/blueprint-spec
+# ──────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────
+  - type: web
+    name: devforge-api
+    runtime: python
+    rootDir: backend
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn main:app --host 0.0.0.0 --port $PORT"
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devforge-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false   # Set manually in Render dashboard (Upstash URL)
+      - key: GEMINI_API_KEY
+        sync: false
+
+  # ── Flask Microservice ───────────────────────────────────────────────────
+  - type: web
+    name: devforge-microservice
+    runtime: python
+    rootDir: microservice
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app --bind 0.0.0.0:$PORT"
+    plan: free
+    envVars:
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+
+# ── PostgreSQL (Render managed — free tier = 90 days) ────────────────────
+databases:
+  - name: devforge-db
+    plan: free
+    databaseName: devforge
+    user: devforge
