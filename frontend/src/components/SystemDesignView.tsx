@@ -14,7 +14,7 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { evaluateSystemDesign } from '../services/geminiService';
+import { aiEvaluateSystemDesign, saveSystemDesignSession } from '../services/apiService';
 
 const COMPONENT_TYPES = [
   { id: 'api', label: 'API Gateway', icon: Shield, color: 'text-rose-500' },
@@ -45,22 +45,30 @@ export default function SystemDesignView() {
   const handleEvaluate = async () => {
     setEvaluating(true);
     try {
-      const evaluation = await evaluateSystemDesign(topic, components, explanation);
+      const { response } = await aiEvaluateSystemDesign(topic, components, explanation);
+      
+      let evaluation;
+      try {
+        evaluation = JSON.parse(response);
+      } catch {
+        evaluation = { 
+          score: 5, 
+          feedback: response, 
+          improvements: ["Structure the response in JSON next time"] 
+        };
+      }
+      
       setResult(evaluation);
       
       // Save to DB
-      await fetch('/api/system-design', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic,
-          components,
-          explanation,
-          ai_feedback: evaluation.feedback
-        })
+      await saveSystemDesignSession({
+        topic,
+        components: JSON.stringify(components),
+        explanation,
+        ai_feedback: evaluation.feedback
       });
     } catch (error) {
-      console.error(error);
+      console.error("System design evaluation failed", error);
     } finally {
       setEvaluating(false);
     }

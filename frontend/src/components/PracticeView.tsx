@@ -16,7 +16,14 @@ import {
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
 import { DSAProblem } from '../types';
-import { explainDSAPattern, evaluateExplanation, getHint } from '../services/geminiService';
+import { 
+  getDSAProblems, 
+  executeCode, 
+  completeDSAProblem, 
+  aiExplainPattern, 
+  aiEvaluateExplanation, 
+  aiGetHint 
+} from '../services/apiService';
 
 export default function PracticeView() {
   const [problems, setProblems] = useState<DSAProblem[]>([]);
@@ -38,9 +45,9 @@ export default function PracticeView() {
   const [loadingHint, setLoadingHint] = useState(false);
 
   useEffect(() => {
-    fetch('/api/dsa')
-      .then(res => res.json())
-      .then(setProblems);
+    getDSAProblems()
+      .then(setProblems)
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -54,8 +61,8 @@ export default function PracticeView() {
   const fetchAiInsight = async (pattern: string) => {
     setLoadingInsight(true);
     try {
-      const insight = await explainDSAPattern(pattern);
-      setAiInsight(insight || "No insight available.");
+      const { response } = await aiExplainPattern(pattern);
+      setAiInsight(response || "No insight available.");
     } catch (error) {
       setAiInsight("Failed to fetch AI insight.");
     } finally {
@@ -80,12 +87,7 @@ export default function PracticeView() {
   const handleExecute = async () => {
     setExecuting(true);
     try {
-      const res = await fetch('/api/execute', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, language: 'python' })
-      });
-      const data = await res.json();
+      const data = await executeCode(code);
       setExecutionResult(data);
     } catch (error) {
       setExecutionResult({ stderr: "Execution failed" });
@@ -98,8 +100,14 @@ export default function PracticeView() {
     if (!selectedProblem) return;
     setEvaluatingExplanation(true);
     try {
-      const feedback = await evaluateExplanation(selectedProblem.title, explanation);
-      setExplanationFeedback(feedback);
+      const { response } = await aiEvaluateExplanation(selectedProblem.title, explanation);
+      // The old evaluateExplanation returned an object, getAIFeedback returns {response: string}
+      // If we want it to be parsed as JSON, we need to do that.
+      try {
+        setExplanationFeedback(JSON.parse(response));
+      } catch {
+        setExplanationFeedback({ feedback: response, clarity: 0, structure: 0, missing_points: [] });
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -111,8 +119,8 @@ export default function PracticeView() {
     if (!selectedProblem) return;
     setLoadingHint(true);
     try {
-      const h = await getHint(selectedProblem.title, code);
-      setHint(h || "No hint available.");
+      const { response } = await aiGetHint(selectedProblem.title, code);
+      setHint(response || "No hint available.");
     } catch (error) {
       setHint("Failed to fetch hint.");
     } finally {
@@ -122,23 +130,24 @@ export default function PracticeView() {
 
   const handleComplete = async () => {
     if (!selectedProblem) return;
-    await fetch(`/api/dsa/${selectedProblem.id}/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    try {
+      await completeDSAProblem(selectedProblem.id, {
         time_taken: time,
         confidence: 4,
         reflection: explanation
-      })
-    });
-    setIsSolving(false);
-    setSelectedProblem(null);
-    setTime(0);
-    setExplanation('');
-    setExplanationFeedback(null);
-    setShowExplain(false);
-    // Refresh list
-    fetch('/api/dsa').then(res => res.json()).then(setProblems);
+      });
+      setIsSolving(false);
+      setSelectedProblem(null);
+      setTime(0);
+      setExplanation('');
+      setExplanationFeedback(null);
+      setShowExplain(false);
+      // Refresh list
+      const updated = await getDSAProblems();
+      setProblems(updated);
+    } catch (error) {
+      console.error("Failed to complete problem", error);
+    }
   };
 
   return (

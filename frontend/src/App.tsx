@@ -19,9 +19,12 @@ import {
   Gamepad2,
   Layers,
   MessageSquare,
-  Library
+  Library,
+  LogOut,
+  Settings
 } from 'lucide-react';
-import { DashboardStats, DSAProblem, ProjectTask, Application, RoadmapPhase } from './types';
+import { DashboardStats } from './types';
+import { getDashboard, getMe } from './services/apiService';
 
 // Views
 import DashboardView from './components/DashboardView';
@@ -34,18 +37,61 @@ import SimulatorView from './components/SimulatorView';
 import SystemDesignView from './components/SystemDesignView';
 import BehavioralTrainer from './components/BehavioralTrainer';
 import MasterGuide from './components/MasterGuide';
+import AuthView from './components/AuthView';
+import ProfileSettingsView from './components/ProfileSettingsView';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState<{name: string, email: string} | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+      fetchUserProfile();
+    }
+    setIsAuthLoading(false);
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const me = await getMe();
+      if (me) {
+        setUserProfile({ name: me.name, email: me.email });
+      }
+    } catch (e) {
+      console.error('Failed to get user profile', e);
+      handleLogout();
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    setUserProfile(null);
+  };
 
   const fetchStats = async () => {
     try {
-      const res = await fetch('/api/dashboard');
-      const data = await res.json();
+      const data = await getDashboard();
       setStats(data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+      // Provide fallback stats so dashboard doesn't appear completely broken
+      setStats({
+        streak: 0,
+        dsa: { total: 0, completed: 0 },
+        project: { total: 0, completed: 0 },
+        applications: { count: 0 },
+        patterns: [],
+        github: null,
+        readinessScore: 0,
+        weaknesses: ['No data yet — complete some problems to see insights'],
+      });
     }
   };
 
@@ -75,6 +121,20 @@ export default function App() {
     { id: 'applications', label: 'Applications', icon: Briefcase },
     { id: 'concepts', label: 'Concepts', icon: Library },
   ];
+
+  if (isAuthLoading) {
+    return <div className="min-h-screen bg-brand-secondary flex items-center justify-center">
+      <div className="w-8 h-8 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+    </div>;
+  }
+
+  if (!isAuthenticated) {
+    return <AuthView onLoginSuccess={() => {
+      setIsAuthenticated(true);
+      fetchUserProfile();
+      fetchStats();
+    }} />;
+  }
 
   return (
     <div className="min-h-screen flex bg-brand-secondary">
@@ -124,10 +184,56 @@ export default function App() {
             <ChevronRight size={12} />
             <span className="text-brand-primary opacity-100">{activeTab}</span>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="h-8 w-8 rounded-full bg-brand-primary/10 flex items-center justify-center">
-              <User size={16} />
-            </div>
+          <div className="flex items-center gap-4 relative">
+            <button 
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className="flex items-center gap-2 mr-2 focus:outline-none group"
+            >
+              <div className="text-right hidden sm:block transition-transform group-hover:scale-[1.02]">
+                <div className="text-sm font-bold text-brand-primary">{userProfile?.name || 'Developer'}</div>
+                <div className="text-[10px] text-brand-primary/50 opacity-70 uppercase">{userProfile?.email || 'Authorized'}</div>
+              </div>
+              <div className="h-8 w-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary/20 transition-colors">
+                <User size={16} />
+              </div>
+            </button>
+
+            <AnimatePresence>
+              {profileDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute right-0 top-12 mt-1 w-56 bg-white/90 backdrop-blur-xl border border-brand-primary/10 rounded-xl shadow-2xl overflow-hidden z-50 flex flex-col"
+                >
+                  <div className="px-4 py-3 border-b border-brand-primary/10 bg-brand-primary/5 sm:hidden">
+                    <div className="text-sm font-bold text-brand-primary truncate">{userProfile?.name || 'Developer'}</div>
+                    <div className="text-[10px] text-brand-primary/50 uppercase truncate">{userProfile?.email || 'Authorized'}</div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      setActiveTab('profile-settings');
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-brand-primary/80 hover:bg-brand-primary/5 hover:text-brand-primary transition-colors text-left"
+                  >
+                    <Settings size={16} />
+                    Profile Settings
+                  </button>
+                  <div className="h-[1px] bg-brand-primary/10 w-full" />
+                  <button 
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-500/10 transition-colors text-left"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </header>
 
@@ -150,6 +256,7 @@ export default function App() {
               {activeTab === 'project' && <ProjectView />}
               {activeTab === 'applications' && <ApplicationsView />}
               {activeTab === 'concepts' && <ConceptsView />}
+              {activeTab === 'profile-settings' && <ProfileSettingsView userProfile={userProfile} />}
             </motion.div>
           </AnimatePresence>
         </div>

@@ -17,6 +17,8 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(100))
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255))
     streak: Mapped[int] = mapped_column(Integer, default=0)
     last_active: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

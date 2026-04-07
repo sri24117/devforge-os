@@ -3,7 +3,7 @@ import { BookOpen, ChevronRight, ExternalLink, Code, X, Loader2 } from 'lucide-r
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getConceptSummary } from '../services/geminiService';
+import { aiGetConceptSummary } from '../services/apiService';
 
 export default function ConceptsView() {
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
@@ -24,8 +24,8 @@ export default function ConceptsView() {
     setLoading(true);
     setSummary(null);
     try {
-      const aiSummary = await getConceptSummary(title);
-      setSummary(aiSummary || "Failed to generate summary.");
+      const { response } = await aiGetConceptSummary(title);
+      setSummary(response || "Failed to generate summary.");
     } catch (error) {
       setSummary("An error occurred while generating the summary.");
     } finally {

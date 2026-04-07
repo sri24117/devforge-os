@@ -5,7 +5,7 @@ Cache key: dashboard:stats | TTL: 5 minutes
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case, Integer
 
 from app.core.database import get_db
 from app.core.redis_client import cache_get, cache_set
@@ -23,6 +23,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
     """
     Returns aggregated dashboard stats.
     ✅ Redis Cache: Hit = instant response. Miss = DB query + cache set.
+    ✅ Graceful: Returns valid zeros when DB is empty.
     """
 
     # ── 1. Try Redis cache first ─────────────────────────────────
@@ -34,22 +35,23 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
     print("🔍 Dashboard: cache MISS — querying PostgreSQL")
 
     # ── 2. Query PostgreSQL ───────────────────────────────────────
-    dsa_total = (await db.execute(select(func.count()).select_from(DSAProblem))).scalar()
+    dsa_total = (await db.execute(select(func.count()).select_from(DSAProblem))).scalar() or 0
     dsa_done = (await db.execute(
         select(func.count()).select_from(DSAProblem).where(DSAProblem.completed == True)
-    )).scalar()
+    )).scalar() or 0
 
-    proj_total = (await db.execute(select(func.count()).select_from(ProjectTask))).scalar()
+    proj_total = (await db.execute(select(func.count()).select_from(ProjectTask))).scalar() or 0
     proj_done = (await db.execute(
         select(func.count()).select_from(ProjectTask).where(ProjectTask.completed == True)
-    )).scalar()
+    )).scalar() or 0
 
-    app_count = (await db.execute(select(func.count()).select_from(Application))).scalar()
+    app_count = (await db.execute(select(func.count()).select_from(Application))).scalar() or 0
 
     # Pattern stats
+    completed_case = case((DSAProblem.completed == True, 1), else_=0)
     pattern_rows = (await db.execute(
         select(DSAProblem.pattern, func.count().label("total"),
-               func.sum(DSAProblem.completed.cast("int")).label("completed"))
+               func.sum(completed_case).label("completed"))
         .group_by(DSAProblem.pattern)
     )).all()
 
@@ -58,7 +60,7 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
         for r in pattern_rows
     ]
 
-    # Streak from users table
+    # Streak from users table (graceful when no user exists)
     user = (await db.execute(select(User).limit(1))).scalar_one_or_none()
     streak = user.streak if user else 0
 
@@ -70,10 +72,16 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
 
     # Weaknesses
     weaknesses = []
-    if dsa_total and dsa_done / dsa_total < 0.5:
+    if dsa_total == 0:
+        weaknesses.append("No DSA problems added yet")
+    elif dsa_done / dsa_total < 0.5:
         weaknesses.append("DSA completion below 50%")
-    if proj_total and proj_done / proj_total < 0.5:
+    if proj_total == 0:
+        weaknesses.append("No project tasks added yet")
+    elif proj_done / proj_total < 0.5:
         weaknesses.append("Project tasks incomplete")
+    if app_count == 0:
+        weaknesses.append("No job applications tracked")
 
     result = {
         "streak": streak,
@@ -81,8 +89,9 @@ async def get_dashboard(db: AsyncSession = Depends(get_db)):
         "project": {"total": proj_total, "completed": proj_done},
         "applications": {"count": app_count},
         "patterns": patterns,
-        "readiness_score": readiness,
-        "weaknesses": weaknesses,
+        "github": None,
+        "readinessScore": readiness,
+        "weaknesses": weaknesses if weaknesses else ["Looking good! Keep going."],
     }
 
     # ── 3. Cache result in Redis ──────────────────────────────────

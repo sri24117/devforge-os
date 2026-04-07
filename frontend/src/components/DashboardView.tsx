@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Timer, Code2, Terminal, Briefcase, ArrowRight, BrainCircuit, Github, CheckCircle2, Loader2, Trophy } from 'lucide-react';
 import { DashboardStats } from '../types';
+import { getGithubAuthUrl, importLeetcode } from '../services/apiService';
 
 export default function DashboardView({ stats }: { stats: DashboardStats | null }) {
   const [leetcodeUsername, setLeetcodeUsername] = useState('');
@@ -13,11 +14,7 @@ export default function DashboardView({ stats }: { stats: DashboardStats | null 
     if (!leetcodeUsername) return;
     setImportingLeetcode(true);
     try {
-      await fetch('/api/leetcode/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: leetcodeUsername })
-      });
+      await importLeetcode(leetcodeUsername);
       window.location.reload();
     } catch (error) {
       console.error(error);
@@ -30,8 +27,7 @@ export default function DashboardView({ stats }: { stats: DashboardStats | null 
   const projectPercent = Math.round((stats.project.completed / stats.project.total) * 100) || 0;
 
   const handleConnectGithub = async () => {
-    const res = await fetch('/api/auth/github/url');
-    const { url } = await res.json();
+    const { url } = await getGithubAuthUrl();
     window.open(url, 'github_oauth', 'width=600,height=700');
   };
 

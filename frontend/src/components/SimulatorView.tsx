@@ -16,7 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Editor from '@monaco-editor/react';
-import { evaluateInterview } from '../services/geminiService';
+import { createInterviewSession, aiEvaluateInterview } from '../services/apiService';
 
 export default function SimulatorView() {
   const [isStarted, setIsStarted] = useState(false);
@@ -51,28 +51,37 @@ export default function SimulatorView() {
   const handleSubmit = async () => {
     setEvaluating(true);
     try {
-      const data = {
+      const interviewData = {
         coding: code,
         backend: explanation,
         behavioral: behavioral
       };
-      const evaluation = await evaluateInterview(config.round, data);
+      const { response } = await aiEvaluateInterview(config.round, interviewData);
+      
+      let evaluation;
+      try {
+        evaluation = JSON.parse(response);
+      } catch {
+        evaluation = { 
+          scores: { coding: 5, backend: 5, behavioral: 5 }, 
+          feedback: response 
+        };
+      }
+      
       setResult(evaluation);
       
       // Save to DB
-      await fetch('/api/interviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company: config.company,
-          duration: config.duration,
-          round: config.round,
-          scores: evaluation.scores,
-          feedback: evaluation.feedback
-        })
+      await createInterviewSession({
+        company: config.company,
+        duration: config.duration,
+        round: config.round,
+        coding_score: evaluation.scores.coding,
+        backend_score: evaluation.scores.backend,
+        behavioral_score: evaluation.scores.behavioral,
+        feedback: evaluation.feedback
       });
     } catch (error) {
-      console.error(error);
+      console.error("Simulation submission failed", error);
     } finally {
       setEvaluating(false);
     }

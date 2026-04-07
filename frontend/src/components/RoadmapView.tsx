@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Lock, Unlock, CheckCircle2, Circle, ChevronRight } from 'lucide-react';
 import { RoadmapPhase } from '../types';
 
+import { 
+  getRoadmap 
+} from '../services/apiService';
+
 export default function RoadmapView() {
   const [phases, setPhases] = useState<RoadmapPhase[]>([]);
 
   useEffect(() => {
-    fetch('/api/roadmap')
-      .then(res => res.json())
-      .then(setPhases);
+    getRoadmap()
+      .then(setPhases)
+      .catch(console.error);
   }, []);
 
   return (

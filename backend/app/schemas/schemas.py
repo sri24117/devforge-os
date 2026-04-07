@@ -106,5 +106,24 @@ class DashboardStats(BaseModel):
     project: dict
     applications: dict
     patterns: list[PatternStats]
-    readiness_score: float
+    github: dict | None = None
+    readinessScore: float
     weaknesses: list[str]
+
+
+# ─── Auth ────────────────────────────────────────────────────────
+
+class UserCreate(BaseModel):
+    email: str
+    password: str
+    name: str
+
+class UserOut(BaseModel):
+    id: int
+    email: str
+    name: str
+    model_config = {"from_attributes": True}
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

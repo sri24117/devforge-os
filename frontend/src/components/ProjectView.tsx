@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { Terminal, CheckCircle2, Circle, Plus, Github, ArrowUpRight } from 'lucide-react';
 import { ProjectTask } from '../types';
+import { getProjectTasks, toggleProjectTask } from '../services/apiService';
 
 export default function ProjectView() {
   const [tasks, setTasks] = useState<ProjectTask[]>([]);
 
   useEffect(() => {
-    fetch('/api/project')
-      .then(res => res.json())
-      .then(setTasks);
+    getProjectTasks()
+      .then(setTasks)
+      .catch(console.error);
   }, []);
 
-  const toggleTask = async (id: number) => {
-    await fetch(`/api/project/${id}/toggle`, { method: 'POST' });
-    fetch('/api/project').then(res => res.json()).then(setTasks);
+  const handleToggleTask = async (id: number) => {
+    try {
+      await toggleProjectTask(id);
+      const updated = await getProjectTasks();
+      setTasks(updated);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const backendTasks = tasks.filter(t => t.category === 'Backend');
@@ -50,7 +56,7 @@ export default function ProjectView() {
             {backendTasks.map(task => (
               <div 
                 key={task.id} 
-                onClick={() => toggleTask(task.id)}
+                onClick={() => handleToggleTask(task.id)}
                 className="p-5 flex items-center justify-between group cursor-pointer hover:bg-brand-primary/5 transition-colors"
               >
                 <div className="flex items-center gap-4">
@@ -75,7 +81,7 @@ export default function ProjectView() {
             {frontendTasks.map(task => (
               <div 
                 key={task.id} 
-                onClick={() => toggleTask(task.id)}
+                onClick={() => handleToggleTask(task.id)}
                 className="p-5 flex items-center justify-between group cursor-pointer hover:bg-brand-primary/5 transition-colors"
               >
                 <div className="flex items-center gap-4">

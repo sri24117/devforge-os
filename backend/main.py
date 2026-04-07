@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 
 from app.core.database import engine, Base
 from app.core.redis_client import redis_client
-from app.api.routes import dashboard, dsa, applications, interviews, system_design, projects
+from app.api.routes import dashboard, dsa, applications, interviews, system_design, projects, auth, ai, execution, roadmap
 
 
 @asynccontextmanager
@@ -54,6 +54,10 @@ app.include_router(applications.router, prefix="/api/applications", tags=["Appli
 app.include_router(interviews.router, prefix="/api/interviews", tags=["Interviews"])
 app.include_router(system_design.router, prefix="/api/system-design", tags=["System Design"])
 app.include_router(projects.router, prefix="/api/projects", tags=["Projects"])
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(ai.router, prefix="/api/ai", tags=["AI Proxy"])
+app.include_router(execution.router, prefix="/api/execute", tags=["Code Execution"])
+app.include_router(roadmap.router, prefix="/api/roadmap", tags=["Readiness Roadmap"])
 
 
 @app.get("/health")

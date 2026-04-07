@@ -3,6 +3,13 @@ import { Briefcase, Plus, Search, Filter, MoreHorizontal, ExternalLink, ChevronR
 import { Application, InterviewRound } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { 
+  getApplications, 
+  createApplication, 
+  getApplicationRounds, 
+  createApplicationRound 
+} from '../services/apiService';
+
 export default function ApplicationsView() {
   const [apps, setApps] = useState<Application[]>([]);
   const [showAdd, setShowAdd] = useState(false);
@@ -13,42 +20,44 @@ export default function ApplicationsView() {
   const [newRound, setNewRound] = useState({ round_name: '', type: 'DSA', questions_asked: '', user_answer: '', improvement_notes: '' });
 
   useEffect(() => {
-    fetch('/api/applications')
-      .then(res => res.json())
-      .then(setApps);
+    getApplications()
+      .then(setApps)
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
     if (selectedApp) {
-      fetch(`/api/applications/${selectedApp.id}/rounds`)
-        .then(res => res.json())
-        .then(setRounds);
+      getApplicationRounds(selectedApp.id)
+        .then(setRounds)
+        .catch(console.error);
     }
   }, [selectedApp]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/applications', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newApp)
-    });
-    setNewApp({ company: '', role: '', status: 'Applied' });
-    setShowAdd(false);
-    fetch('/api/applications').then(res => res.json()).then(setApps);
+    try {
+      await createApplication(newApp);
+      setNewApp({ company: '', role: '', status: 'Applied' });
+      setShowAdd(false);
+      const updated = await getApplications();
+      setApps(updated);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleAddRound = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedApp) return;
-    await fetch(`/api/applications/${selectedApp.id}/rounds`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newRound)
-    });
-    setNewRound({ round_name: '', type: 'DSA', questions_asked: '', user_answer: '', improvement_notes: '' });
-    setShowAddRound(false);
-    fetch(`/api/applications/${selectedApp.id}/rounds`).then(res => res.json()).then(setRounds);
+    try {
+      await createApplicationRound(selectedApp.id, newRound);
+      setNewRound({ round_name: '', type: 'DSA', questions_asked: '', user_answer: '', improvement_notes: '' });
+      setShowAddRound(false);
+      const updated = await getApplicationRounds(selectedApp.id);
+      setRounds(updated);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const companyPrep: Record<string, any> = {

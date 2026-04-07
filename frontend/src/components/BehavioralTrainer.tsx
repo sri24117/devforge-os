@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, Sparkles, Brain, Loader2, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
-import { getBehavioralFeedback } from '../services/geminiService';
+import { aiEvaluateBehavioral } from '../services/apiService';
 
 const QUESTIONS = [
   "Tell me about a challenging bug you solved recently.",
@@ -21,10 +21,19 @@ export default function BehavioralTrainer() {
     if (!answer) return;
     setEvaluating(true);
     try {
-      const res = await getBehavioralFeedback(QUESTIONS[currentQuestion], answer);
-      setFeedback(res);
+      const { response } = await aiEvaluateBehavioral(QUESTIONS[currentQuestion], answer);
+      try {
+        setFeedback(JSON.parse(response));
+      } catch {
+        setFeedback({
+          score: 5,
+          feedback: response,
+          strengths: ["Attempted STAR method"],
+          improvements: ["Structure the response in JSON next time"]
+        });
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Behavioral evaluation failed", error);
     } finally {
       setEvaluating(false);
     }
