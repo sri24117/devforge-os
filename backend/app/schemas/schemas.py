@@ -105,10 +105,20 @@ class DashboardStats(BaseModel):
     dsa: dict
     project: dict
     applications: dict
+    interviews: dict
+    system_design: dict
     patterns: list[PatternStats]
     github: dict | None = None
     readinessScore: float
     weaknesses: list[str]
+
+
+class DailyPlan(BaseModel):
+    day: int
+    topic: str
+    description: str
+    problems: list[str]
+    completed: bool
 
 
 # ─── Auth ────────────────────────────────────────────────────────

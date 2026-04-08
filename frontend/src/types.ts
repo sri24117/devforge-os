@@ -3,6 +3,8 @@ export interface DashboardStats {
   dsa: { total: number; completed: number };
   project: { total: number; completed: number };
   applications: { count: number };
+  interviews: { count: number };
+  system_design: { count: number };
   patterns: { pattern: string; total: number; completed: number }[];
   github: { username: string } | null;
   readinessScore: number;
@@ -80,4 +82,12 @@ export interface RoadmapPhase {
   id: number;
   title: string;
   status: string;
+}
+
+export interface DailyPlan {
+  day: number;
+  topic: string;
+  description: string;
+  problems: string[];
+  completed: boolean;
 }

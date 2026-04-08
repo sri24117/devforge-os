@@ -16,8 +16,8 @@ import {
   RoadmapPhase
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const MS_BASE = import.meta.env.VITE_MICROSERVICE_URL || "http://localhost:5001";
+const API_BASE = (import.meta as any).env.VITE_API_URL || "http://localhost:8000";
+const MS_BASE = (import.meta as any).env.VITE_MICROSERVICE_URL || "http://localhost:5001";
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem("token");
@@ -68,6 +68,9 @@ export const getGithubAuthUrl = () =>
 // ─── Dashboard & Stats ───────────────────────────────────────────
 export const getDashboard = () =>
   apiFetch<DashboardStats>(`${API_BASE}/api/dashboard`);
+
+export const getTodayPlan = () =>
+  apiFetch<{ day: number; topic: string; description: string; problems: string[]; completed: boolean }>(`${API_BASE}/api/dashboard/today`);
 
 export const importLeetcode = (username: string) =>
   apiFetch(`${API_BASE}/api/leetcode/import`, {
@@ -170,3 +173,9 @@ export const aiEvaluateSystemDesign = (topic: string, components: any[], explana
 
 export const aiEvaluateBehavioral = (question: string, answer: string) =>
   getAIFeedback(`Evaluate this behavioral interview answer using the STAR method. Question: ${question}. Answer: ${answer}. Return a JSON with "score", "feedback", "strengths" (array), and "improvements" (array).`);
+
+export const aiWorkflowPrep = (goal: string) =>
+  apiFetch<{ architecture: string; model: string }>(`${API_BASE}/api/ai/workflow-prep`, {
+    method: "POST",
+    body: JSON.stringify({ goal }),
+  });

@@ -27,6 +27,7 @@ class DSAProblem(Base):
     __tablename__ = "dsa_problems"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str] = mapped_column(String(255))
     pattern: Mapped[str] = mapped_column(String(100))
     difficulty: Mapped[str] = mapped_column(String(20))  # Easy/Medium/Hard
@@ -40,6 +41,7 @@ class ProjectTask(Base):
     __tablename__ = "project_tasks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str] = mapped_column(String(255))
     category: Mapped[str] = mapped_column(String(50))  # Backend / Frontend
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -49,6 +51,7 @@ class Application(Base):
     __tablename__ = "applications"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     company: Mapped[str] = mapped_column(String(100))
     role: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(50))
@@ -63,6 +66,7 @@ class Interview(Base):
     __tablename__ = "interviews"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     company: Mapped[str] = mapped_column(String(100))
     duration: Mapped[int | None] = mapped_column(Integer, nullable=True)
     round: Mapped[str] = mapped_column(String(50))
@@ -77,6 +81,7 @@ class SystemDesignSession(Base):
     __tablename__ = "system_design_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     topic: Mapped[str] = mapped_column(String(200))
     components: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON
     explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -103,6 +108,7 @@ class LeetCodeProfile(Base):
     __tablename__ = "leetcode_profiles"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     username: Mapped[str] = mapped_column(String(100))
     total_solved: Mapped[int] = mapped_column(Integer, default=0)
     easy_solved: Mapped[int] = mapped_column(Integer, default=0)
@@ -115,5 +121,40 @@ class RoadmapPhase(Base):
     __tablename__ = "roadmap_phases"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str] = mapped_column(String(200))
     status: Mapped[str] = mapped_column(String(50), default="pending")
+
+
+class RoadmapDay(Base):
+    __tablename__ = "roadmap_days"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    day_number: Mapped[int] = mapped_column(Integer, unique=True)
+    topic: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    problem_ids: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON list of problem IDs/titles
+
+
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    day_number: Mapped[int] = mapped_column(Integer)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    unlocked_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class ProblemAttempt(Base):
+    __tablename__ = "problem_attempts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    problem_reference: Mapped[str] = mapped_column(String(200))  # Title or ID
+    success: Mapped[bool] = mapped_column(Boolean, default=False)
+    time_taken: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    code_submission: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_mentor_feedback: Mapped[str | None] = mapped_column(Text, nullable=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

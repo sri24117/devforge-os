@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Library,
   LogOut,
-  Settings
+  Settings,
+  Sparkles
 } from 'lucide-react';
 import { DashboardStats } from './types';
 import { getDashboard, getMe } from './services/apiService';
@@ -39,14 +40,32 @@ import BehavioralTrainer from './components/BehavioralTrainer';
 import MasterGuide from './components/MasterGuide';
 import AuthView from './components/AuthView';
 import ProfileSettingsView from './components/ProfileSettingsView';
+import AIWorkflowView from './components/AIWorkflowView';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Sync tab with URL hash for better UX
+  const getHashTab = () => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'dashboard';
+  };
+
+  const [activeTab, setActiveTab] = useState(getHashTab());
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<{name: string, email: string} | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    window.addEventListener('hashchange', () => {
+      setActiveTab(getHashTab());
+    });
+  }, []);
+
+  const handleSetTab = (tab: string) => {
+    window.location.hash = tab;
+    setActiveTab(tab);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -87,6 +106,8 @@ export default function App() {
         dsa: { total: 0, completed: 0 },
         project: { total: 0, completed: 0 },
         applications: { count: 0 },
+        interviews: { count: 0 },
+        system_design: { count: 0 },
         patterns: [],
         github: null,
         readinessScore: 0,
@@ -112,6 +133,7 @@ export default function App() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'roadmap', label: 'Roadmap', icon: Map },
+    { id: 'ai-workflow', label: 'AI Workflow', icon: Sparkles },
     { id: 'practice', label: 'Practice', icon: Code2 },
     { id: 'simulator', label: 'Simulator', icon: Gamepad2 },
     { id: 'system-design', label: 'System Design', icon: Layers },
@@ -152,7 +174,7 @@ export default function App() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleSetTab(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 activeTab === item.id 
                   ? 'bg-brand-primary text-brand-secondary shadow-lg shadow-brand-primary/20' 
@@ -164,15 +186,18 @@ export default function App() {
             </button>
           ))}
         </nav>
-
-        <div className="p-6 border-t border-brand-primary/10">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-brand-accent/10 text-brand-accent">
-            <Flame size={18} fill="currentColor" />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold uppercase tracking-wider">Streak</span>
-              <span className="text-lg font-black leading-none">{stats?.streak || 0} DAYS</span>
-            </div>
-          </div>
+        <div className="mt-auto p-4 border-t border-brand-primary/10">
+          <button 
+            onClick={() => {
+              if (confirm('Are you sure you want to terminate this session?')) {
+                handleLogout();
+              }
+            }}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold text-red-500 hover:bg-red-500/10 transition-all active:scale-95"
+          >
+            <LogOut size={18} />
+            Logout Protocol
+          </button>
         </div>
       </aside>
 
@@ -185,18 +210,18 @@ export default function App() {
             <span className="text-brand-primary opacity-100">{activeTab}</span>
           </div>
           <div className="flex items-center gap-4 relative">
-            <button 
-              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="flex items-center gap-2 mr-2 focus:outline-none group"
-            >
-              <div className="text-right hidden sm:block transition-transform group-hover:scale-[1.02]">
-                <div className="text-sm font-bold text-brand-primary">{userProfile?.name || 'Developer'}</div>
-                <div className="text-[10px] text-brand-primary/50 opacity-70 uppercase">{userProfile?.email || 'Authorized'}</div>
+            <div className="flex items-center gap-3 px-3 py-1.5 bg-brand-primary/5 rounded-full border border-brand-primary/10">
+              <div className="flex flex-col items-end pr-2 border-r border-brand-primary/10">
+                <span className="text-[11px] font-black tracking-tight text-brand-primary">{userProfile?.name || 'Developer'}</span>
+                <span className="text-[9px] text-brand-primary/40 font-bold uppercase tracking-widest">{userProfile?.email ? 'ID Verified' : 'Guest Mode'}</span>
               </div>
-              <div className="h-8 w-8 rounded-full bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary/20 transition-colors">
+              <button 
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="h-8 w-8 rounded-full bg-brand-primary text-brand-secondary flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg shadow-brand-primary/20"
+              >
                 <User size={16} />
-              </div>
-            </button>
+              </button>
+            </div>
 
             <AnimatePresence>
               {profileDropdownOpen && (
@@ -213,7 +238,7 @@ export default function App() {
                   <button 
                     onClick={() => {
                       setProfileDropdownOpen(false);
-                      setActiveTab('profile-settings');
+                      handleSetTab('profile-settings');
                     }}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-brand-primary/80 hover:bg-brand-primary/5 hover:text-brand-primary transition-colors text-left"
                   >
@@ -246,8 +271,9 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {activeTab === 'dashboard' && <DashboardView stats={stats} />}
+              {activeTab === 'dashboard' && <DashboardView stats={stats} userProfile={userProfile} />}
               {activeTab === 'roadmap' && <RoadmapView />}
+              {activeTab === 'ai-workflow' && <AIWorkflowView />}
               {activeTab === 'practice' && <PracticeView />}
               {activeTab === 'simulator' && <SimulatorView />}
               {activeTab === 'system-design' && <SystemDesignView />}

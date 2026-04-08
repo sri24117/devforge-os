@@ -1,10 +1,12 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.api.deps import get_current_user
+from app.models.models import User
 
 router = APIRouter()
 
 
 @router.get("")
-async def get_roadmap():
+async def get_roadmap(current_user: User = Depends(get_current_user)):
     """
     Mock roadmap data. 
     In production, this would be computed per user.
