@@ -22,7 +22,8 @@ import {
   Library,
   LogOut,
   Settings,
-  Sparkles
+  Sparkles,
+  Target
 } from 'lucide-react';
 import { DashboardStats } from './types';
 import { getDashboard, getMe } from './services/apiService';
@@ -41,12 +42,15 @@ import MasterGuide from './components/MasterGuide';
 import AuthView from './components/AuthView';
 import ProfileSettingsView from './components/ProfileSettingsView';
 import AIWorkflowView from './components/AIWorkflowView';
+import FloatingAIAssistant from './components/FloatingAIAssistant';
+import FocusTimer from './components/FocusTimer';
+import MinimalHomeView from './components/MinimalHomeView';
 
 export default function App() {
   // Sync tab with URL hash for better UX
   const getHashTab = () => {
     const hash = window.location.hash.replace('#', '');
-    return hash || 'dashboard';
+    return hash || 'today';
   };
 
   const [activeTab, setActiveTab] = useState(getHashTab());
@@ -57,9 +61,9 @@ export default function App() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   useEffect(() => {
-    window.addEventListener('hashchange', () => {
-      setActiveTab(getHashTab());
-    });
+    const handler = () => setActiveTab(getHashTab());
+    window.addEventListener('hashchange', handler);
+    return () => window.removeEventListener('hashchange', handler);
   }, []);
 
   const handleSetTab = (tab: string) => {
@@ -117,8 +121,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    if (isAuthenticated) fetchStats();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -131,17 +135,15 @@ export default function App() {
   }, []);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'roadmap', label: 'Roadmap', icon: Map },
-    { id: 'ai-workflow', label: 'AI Workflow', icon: Sparkles },
+    { id: 'today', label: 'Today', icon: Target },
     { id: 'practice', label: 'Practice', icon: Code2 },
-    { id: 'simulator', label: 'Simulator', icon: Gamepad2 },
+    { id: 'dashboard', label: 'Analytics', icon: LayoutDashboard },
+    { id: 'roadmap', label: 'Roadmap', icon: Map },
+    { id: 'simulator', label: 'Mock Interview', icon: Gamepad2 },
     { id: 'system-design', label: 'System Design', icon: Layers },
-    { id: 'behavioral', label: 'Behavioral', icon: MessageSquare },
-    { id: 'master-guide', label: 'Master Guide', icon: BookOpen },
-    { id: 'project', label: 'Project', icon: Terminal },
-    { id: 'applications', label: 'Applications', icon: Briefcase },
-    { id: 'concepts', label: 'Concepts', icon: Library },
+    { id: 'project', label: 'Projects', icon: Terminal },
+    { id: 'applications', label: 'Career', icon: Briefcase },
+    { id: 'master-guide', label: 'Library', icon: BookOpen },
   ];
 
   if (isAuthLoading) {
@@ -210,6 +212,7 @@ export default function App() {
             <span className="text-brand-primary opacity-100">{activeTab}</span>
           </div>
           <div className="flex items-center gap-4 relative">
+            <FocusTimer taskTitle={activeTab} context={activeTab} />
             <div className="flex items-center gap-3 px-3 py-1.5 bg-brand-primary/5 rounded-full border border-brand-primary/10">
               <div className="flex flex-col items-end pr-2 border-r border-brand-primary/10">
                 <span className="text-[11px] font-black tracking-tight text-brand-primary">{userProfile?.name || 'Developer'}</span>
@@ -271,6 +274,7 @@ export default function App() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
+              {activeTab === 'today' && <MinimalHomeView onNavigate={handleSetTab} />}
               {activeTab === 'dashboard' && <DashboardView stats={stats} userProfile={userProfile} />}
               {activeTab === 'roadmap' && <RoadmapView />}
               {activeTab === 'ai-workflow' && <AIWorkflowView />}
@@ -287,6 +291,7 @@ export default function App() {
           </AnimatePresence>
         </div>
       </main>
+      <FloatingAIAssistant activeTab={activeTab} />
     </div>
   );
 }

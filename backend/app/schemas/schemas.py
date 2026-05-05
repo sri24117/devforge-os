@@ -137,3 +137,52 @@ class UserOut(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+# ─── V4 AI Assistant / Focus / Feature Gates ─────────────────────
+
+class AIAssistantRequest(BaseModel):
+    message: str
+    context: Optional[str] = None
+    selected_text: Optional[str] = None
+    mode: str = "quick"  # quick/deep/balanced
+    model: Optional[str] = None
+
+
+class AIAssistantResponse(BaseModel):
+    response: str
+    model: str
+    mode: str
+    fallback: bool = False
+    remaining_today: Optional[int] = None
+
+
+class FocusSessionCreate(BaseModel):
+    context: str = "practice"
+    task_title: Optional[str] = None
+    target_minutes: int = 25
+    elapsed_seconds: int
+    completed: bool = False
+    difficulty: Optional[str] = None
+
+
+class FocusSessionOut(BaseModel):
+    id: int
+    context: str
+    task_title: Optional[str]
+    target_minutes: int
+    elapsed_seconds: int
+    completed: bool
+    speed_flag: Optional[str]
+    created_at: datetime
+    model_config = {"from_attributes": True}
+
+
+class FeatureEntitlements(BaseModel):
+    plan: str
+    ai_daily_limit: int
+    compiler_daily_limit: int
+    resume_match_enabled: bool
+    deep_ai_enabled: bool
+    voice_mock_enabled: bool
+    admin_enabled: bool

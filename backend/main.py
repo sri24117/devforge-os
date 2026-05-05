@@ -16,7 +16,7 @@ from app.core.database import engine, Base
 from app.core.redis_client import redis_client
 from app.api.routes import (
     dashboard, dsa, applications, interviews,
-    system_design, projects, auth, ai, execution, roadmap
+    system_design, projects, auth, ai, execution, roadmap, assistant, focus, entitlements
 )
 
 # ─── Logging Setup ───────────────────────────────────────────────
@@ -77,6 +77,9 @@ app.include_router(auth.router,            prefix="/api/auth",          tags=["A
 app.include_router(ai.router,              prefix="/api/ai",            tags=["AI Proxy"])
 app.include_router(execution.router,       prefix="/api/execute",       tags=["Code Execution"])
 app.include_router(roadmap.router,         prefix="/api/roadmap",       tags=["Roadmap"])
+app.include_router(assistant.router,       prefix="/api/assistant",    tags=["AI Assistant V4"])
+app.include_router(focus.router,           prefix="/api/focus",        tags=["Focus Timer V4"])
+app.include_router(entitlements.router,    prefix="/api/entitlements", tags=["Feature Gates V4"])
 
 # NOTE: /api/leetcode/import is now registered INSIDE auth.router as /api/auth/leetcode/import
 # The frontend apiService.ts calls /api/leetcode/import — add this alias:

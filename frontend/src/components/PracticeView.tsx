@@ -87,7 +87,7 @@ export default function PracticeView() {
   const handleExecute = async () => {
     setExecuting(true);
     try {
-      const data = await executeCode(code);
+      const data = await executeCode(code, "python", selectedProblem?.title);
       setExecutionResult(data);
     } catch (error) {
       setExecutionResult({ stderr: "Execution failed" });
@@ -206,8 +206,26 @@ export default function PracticeView() {
                   <div className="flex-1 p-6 font-mono text-sm overflow-y-auto">
                     {executionResult ? (
                       <div className="space-y-4">
-                        {executionResult.stdout && <div className="text-emerald-400">{executionResult.stdout}</div>}
-                        {executionResult.stderr && <div className="text-rose-400">{executionResult.stderr}</div>}
+                        {executionResult.test_results && (
+                          <div className="p-3 bg-brand-primary/10 rounded-xl border border-brand-primary/20 space-y-2">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-brand-primary opacity-60">Test Cases</div>
+                            {executionResult.test_results.map((tr: any, idx: number) => (
+                              <div key={idx} className="flex flex-col text-xs">
+                                <div className="flex items-center gap-2 font-bold">
+                                  {tr.passed ? <CheckCircle2 size={12} className="text-emerald-500" /> : <X size={12} className="text-rose-500" />}
+                                  <span>Test Case {idx + 1}: {tr.passed ? 'Passed' : 'Failed'}</span>
+                                </div>
+                                {!tr.passed && (
+                                  <div className="pl-5 text-[10px] opacity-70 italic mt-1 text-rose-300">
+                                    Expected: {JSON.stringify(tr.expected)} | Got: {JSON.stringify(tr.actual)}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {executionResult.stdout && <div className="text-emerald-400 p-2 bg-black/20 rounded-lg">{executionResult.stdout}</div>}
+                        {executionResult.stderr && <div className="text-rose-400 p-2 bg-black/20 rounded-lg whitespace-pre-wrap">{executionResult.stderr}</div>}
                       </div>
                     ) : (
                       <div className="opacity-20 italic">Run your code to see output...</div>

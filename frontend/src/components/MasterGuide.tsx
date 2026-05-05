@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-
-/* ─────────────────────────────────────────────
+import { motion, AnimatePresence } from "motion/react";
+import { Search, ChevronRight, Check, ExternalLink, Play, BookOpen, Layers, Terminal } from "lucide-react";/* ─────────────────────────────────────────────
    DSA CATEGORIES (problems 1–70)
 ───────────────────────────────────────────── */
 const dsaCategories = [
@@ -369,13 +369,14 @@ const backendSections = [
 const diffColor: Record<string, string> = { Easy: "#4ADE80", Medium: "#FBBF24", Hard: "#F87171" };
 const diffBg: Record<string, string> =    { Easy: "rgba(74,222,128,0.12)", Medium: "rgba(251,191,36,0.12)", Hard: "rgba(248,113,113,0.12)" };
 
-function Tag({ label, color = "#6B7280" }: { label: string; color?: string }) {
+function Tag({ label, color = "#94a3b8" }: { label: string; color?: string }) {
   return (
-    <span style={{
-      fontSize: 9, fontFamily: "'Courier New', monospace", letterSpacing: 1,
-      background: `${color}18`, color, border: `1px solid ${color}30`,
-      padding: "2px 7px", borderRadius: 8, textTransform: "uppercase",
-    }}>{label}</span>
+    <span 
+      className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded-full border border-white/10"
+      style={{ color, backgroundColor: `${color}15`, borderColor: `${color}30` }}
+    >
+      {label}
+    </span>
   );
 }
 
@@ -399,59 +400,78 @@ export default function MasterGuide() {
   };
 
   const tabs = [
-    { id: "dsa",    label: "DSA Problems",    count: "70",  color: "#60A5FA" },
-    { id: "system", label: "System Design",   count: "10",  color: "#F59E0B" },
-    { id: "backend",label: "Backend Q&A",     count: "30+", color: "#A78BFA" },
+    { id: "dsa",    label: "DSA Problems",    count: "70",  color: "#3b82f6", icon: Terminal },
+    { id: "system", label: "System Design",   count: "10",  color: "#f59e0b", icon: Layers },
+    { id: "backend",label: "Backend Q&A",     count: "30+", color: "#8b5cf6", icon: BookOpen },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-12">
       {/* ── HERO ── */}
-      <div style={{
-        background: "linear-gradient(135deg, #0a0a18 0%, #0f1120 60%, #09090f 100%)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        padding: "44px 24px 32px", textAlign: "center", position: "relative", overflow: "hidden",
-        borderRadius: '24px'
-      }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 15% 50%, rgba(96,165,250,0.05) 0%, transparent 55%), radial-gradient(circle at 85% 20%, rgba(167,139,250,0.06) 0%, transparent 50%)" }} />
-        <div style={{ position: "relative" }}>
-          <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 6, color: "#60A5FA", marginBottom: 10 }}>
-            FAANG INTERVIEW MASTER GUIDE
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-white/10 p-10 text-center shadow-2xl">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-blue-400 font-bold mb-3 border border-blue-400/20 px-3 py-1 rounded-full bg-blue-400/10">
+            FAANG Interview Master Guide
           </div>
-          <h1 style={{
-            fontSize: "clamp(26px, 4.5vw, 50px)", fontWeight: 700, margin: "0 0 6px", letterSpacing: "-1px",
-            background: "linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-          }}>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
             Complete Interview Prep
           </h1>
-          <p style={{ color: "#6B7280", fontSize: 14, margin: "0 0 20px", fontFamily: "'Courier New', monospace" }}>
+          <p className="text-slate-400 text-sm font-mono tracking-tight mb-8">
             70 DSA · 10 System Design · 30+ Backend Q&A
           </p>
 
           {/* progress bar */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 40, padding: "7px 18px", marginBottom: 24 }}>
-            <div style={{ width: 110, height: 5, background: "rgba(255,255,255,0.07)", borderRadius: 3, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${(totalSolved / totalDSA) * 100}%`, background: "linear-gradient(90deg, #60A5FA, #A78BFA)", borderRadius: 3, transition: "width 0.4s" }} />
+          <div className="flex items-center gap-4 bg-black/40 backdrop-blur-md border border-white/10 rounded-full px-5 py-2.5 mb-8 shadow-inner">
+            <div className="w-32 h-1.5 bg-white/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-400 to-purple-400 rounded-full transition-all duration-700 ease-out" 
+                style={{ width: `${(totalSolved / totalDSA) * 100}%` }} 
+              />
             </div>
-            <span style={{ fontFamily: "'Courier New', monospace", fontSize: 11, color: "#9CA3AF" }}>{totalSolved}/{totalDSA} DSA solved</span>
+            <span className="font-mono text-xs text-slate-300 font-bold">
+              {totalSolved} / {totalDSA} <span className="text-slate-500 font-normal">SOLVED</span>
+            </span>
           </div>
 
           {/* tabs */}
-          <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap" }}>
-            {tabs.map((t) => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)} style={{
-                padding: "8px 20px", borderRadius: 22, border: "1px solid",
-                borderColor: activeTab === t.id ? t.color : "rgba(255,255,255,0.1)",
-                background: activeTab === t.id ? `${t.color}15` : "transparent",
-                color: activeTab === t.id ? t.color : "#6B7280",
-                cursor: "pointer", fontSize: 12, fontFamily: "'Courier New', monospace",
-                transition: "all 0.2s", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                {t.label}
-                <span style={{ background: activeTab === t.id ? `${t.color}25` : "rgba(255,255,255,0.05)", padding: "1px 6px", borderRadius: 8, fontSize: 10 }}>{t.count}</span>
-              </button>
-            ))}
+          <div className="flex gap-3 justify-center flex-wrap bg-white/5 p-1.5 rounded-2xl border border-white/10 backdrop-blur-lg">
+            {tabs.map((t) => {
+              const Icon = t.icon;
+              return (
+                <button 
+                  key={t.id} 
+                  onClick={() => setActiveTab(t.id)} 
+                  className={`
+                    relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300
+                    ${activeTab === t.id 
+                      ? "text-white shadow-lg" 
+                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                    }
+                  `}
+                >
+                  {activeTab === t.id && (
+                    <motion.div 
+                      layoutId="activeTab"
+                      className="absolute inset-0 rounded-xl"
+                      style={{ backgroundColor: t.color }}
+                      initial={false}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                  <div className="relative z-10 flex items-center gap-2">
+                    <Icon size={16} />
+                    {t.label}
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono ${activeTab === t.id ? 'bg-black/20' : 'bg-white/10'}`}>
+                      {t.count}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -460,187 +480,424 @@ export default function MasterGuide() {
           TAB: DSA
       ══════════════════════════════ */}
       {activeTab === "dsa" && (
-        <div className="max-w-full">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-6"
+        >
           {/* filters */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-            {["All","Easy","Medium","Hard"].map((d) => (
-              <button key={d} onClick={() => setDiffFilter(d)} style={{
-                padding: "5px 14px", borderRadius: 18, border: "1px solid",
-                borderColor: diffFilter === d ? (diffColor[d] || "#60A5FA") : "rgba(255,255,255,0.1)",
-                background: diffFilter === d ? (diffBg[d] || "rgba(96,165,250,0.12)") : "transparent",
-                color: diffFilter === d ? (diffColor[d] || "#60A5FA") : "#6B7280",
-                cursor: "pointer", fontSize: 11, fontFamily: "'Courier New', monospace", transition: "all 0.2s",
-              }}>{d}</button>
-            ))}
-            <input placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)}
-              style={{ padding: "5px 14px", borderRadius: 18, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", color: "#e2e8f0", fontSize: 11, outline: "none", fontFamily: "'Courier New', monospace", width: 160 }} />
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 border border-white/10 p-2 rounded-2xl backdrop-blur-sm">
+            <div className="flex gap-2">
+              {["All", "Easy", "Medium", "Hard"].map((d) => (
+                <button 
+                  key={d} 
+                  onClick={() => setDiffFilter(d)} 
+                  className={`
+                    px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all duration-200
+                    ${diffFilter === d 
+                      ? d === 'Easy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : d === 'Medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : d === 'Hard' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                      : 'bg-transparent text-slate-400 border border-transparent hover:bg-white/5'
+                    }
+                  `}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+              <input 
+                placeholder="Search pattern or problem..." 
+                value={search} 
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 pr-4 py-2 rounded-xl border border-white/10 bg-black/20 text-slate-200 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono w-64"
+              />
+            </div>
           </div>
 
-          <div style={{ display: "grid", gap: 10 }}>
+          <div className="grid gap-4">
             {dsaCategories.map((cat) => {
               const probs = cat.problems.filter((p) => (diffFilter === "All" || p.diff === diffFilter) && p.title.toLowerCase().includes(search.toLowerCase()));
               if (!probs.length) return null;
+              
               const isOpen = openItem === cat.id;
               const catSolved = cat.problems.filter((p) => solved[p.n]).length;
+              const isAllSolved = catSolved === cat.problems.length;
+              
               return (
-                <div key={cat.id} style={{ border: `1px solid ${isOpen ? cat.color + "40" : "rgba(255,255,255,0.06)"}`, borderRadius: 12, background: isOpen ? cat.bg : "rgba(255,255,255,0.02)", transition: "all 0.25s", overflow: "hidden" }}>
-                  <div onClick={() => setOpenItem(isOpen ? null : cat.id)} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", cursor: "pointer" }}>
-                    <div style={{ width: 38, height: 38, borderRadius: 9, background: cat.bg, border: `1px solid ${cat.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: cat.color, flexShrink: 0 }}>{cat.icon}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: "#f1f5f9" }}>{cat.title} <span style={{ fontSize: 11, color: "#6B7280", fontWeight: 400, fontFamily: "'Courier New', monospace" }}>· {cat.subtitle}</span></div>
-                      <div style={{ fontSize: 11, color: "#6B7280", marginTop: 1, fontStyle: "italic" }}>{cat.desc}</div>
+                <div 
+                  key={cat.id} 
+                  className={`rounded-2xl border overflow-hidden transition-all duration-300 ${isOpen ? 'shadow-xl' : 'hover:border-white/20'}`}
+                  style={{ 
+                    borderColor: isOpen ? `${cat.color}40` : "rgba(255,255,255,0.06)",
+                    background: isOpen ? `linear-gradient(to bottom, ${cat.color}08, transparent)` : "rgba(255,255,255,0.02)"
+                  }}
+                >
+                  <div 
+                    onClick={() => setOpenItem(isOpen ? null : cat.id)} 
+                    className="flex items-center gap-4 p-4 cursor-pointer group"
+                  >
+                    <div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110 shadow-inner"
+                      style={{ background: `${cat.color}15`, border: `1px solid ${cat.color}30`, color: cat.color }}
+                    >
+                      {cat.icon}
                     </div>
-                    <span style={{ fontSize: 11, fontFamily: "'Courier New', monospace", color: catSolved === cat.problems.length ? "#4ADE80" : "#6B7280", flexShrink: 0 }}>{catSolved}/{cat.problems.length}</span>
-                    <span style={{ color: cat.color, fontSize: 16, transition: "transform 0.2s", transform: isOpen ? "rotate(90deg)" : "none", display: "inline-block" }}>›</span>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-slate-200 text-lg group-hover:text-white transition-colors">{cat.title}</h3>
+                        <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/5 text-slate-400">
+                          {cat.subtitle}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{cat.desc}</p>
+                    </div>
+                    
+                    <div className={`font-mono text-xs font-bold px-3 py-1 rounded-full border ${isAllSolved ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                      {catSolved} / {cat.problems.length}
+                    </div>
+                    
+                    <ChevronRight 
+                      className={`text-slate-400 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`} 
+                      style={{ color: isOpen ? cat.color : undefined }}
+                    />
                   </div>
-                  {isOpen && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                      {probs.map((p, i) => (
-                        <div key={p.n} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 18px 9px 68px", borderBottom: i < probs.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: solved[p.n] ? "rgba(74,222,128,0.03)" : "transparent" }}>
-                          <div onClick={(e) => toggleSolved(p.n, e)} style={{ width: 16, height: 16, borderRadius: 4, flexShrink: 0, border: `2px solid ${solved[p.n] ? "#4ADE80" : "rgba(255,255,255,0.15)"}`, background: solved[p.n] ? "#4ADE80" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#09090f", fontWeight: 800 }}>{solved[p.n] ? "✓" : ""}</div>
-                          <span style={{ fontFamily: "'Courier New', monospace", fontSize: 10, color: "#374151", width: 22 }}>{String(p.n).padStart(2,"0")}</span>
-                          <span style={{ flex: 1, fontSize: 13, color: solved[p.n] ? "#6B7280" : "#cbd5e1", textDecoration: solved[p.n] ? "line-through" : "none" }}>{p.title}</span>
-                          <span style={{ fontSize: 10, fontFamily: "'Courier New', monospace", color: diffColor[p.diff], background: diffBg[p.diff], padding: "2px 7px", borderRadius: 8, flexShrink: 0 }}>{p.diff}</span>
-                          <a href={p.lc} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} style={{ fontSize: 10, fontFamily: "'Courier New', monospace", color: cat.color, textDecoration: "none", background: `${cat.color}12`, border: `1px solid ${cat.color}30`, padding: "2px 9px", borderRadius: 7, flexShrink: 0 }}>LC →</a>
+                  
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden border-t border-white/5 bg-black/20"
+                      >
+                        <div className="p-2 space-y-1">
+                          {probs.map((p) => {
+                            const isDone = solved[p.n];
+                            return (
+                              <div 
+                                key={p.n} 
+                                className={`flex items-center gap-4 p-3 rounded-xl transition-colors group ${isDone ? 'bg-emerald-500/5' : 'hover:bg-white/5'}`}
+                              >
+                                <button 
+                                  onClick={(e) => toggleSolved(p.n, e)} 
+                                  className={`
+                                    w-6 h-6 rounded flex items-center justify-center transition-all flex-shrink-0
+                                    ${isDone 
+                                      ? 'bg-emerald-500 text-emerald-950 shadow-[0_0_10px_rgba(16,185,129,0.3)]' 
+                                      : 'border border-white/20 text-transparent hover:border-emerald-500/50 hover:bg-emerald-500/10'}
+                                  `}
+                                >
+                                  <Check size={14} strokeWidth={4} />
+                                </button>
+                                
+                                <span className="font-mono text-xs text-slate-600 font-bold w-6">{String(p.n).padStart(2,"0")}</span>
+                                
+                                <span className={`flex-1 text-sm font-medium transition-all ${isDone ? 'text-slate-500 line-through decoration-slate-600' : 'text-slate-300 group-hover:text-white'}`}>
+                                  {p.title}
+                                </span>
+                                
+                                <span className={`
+                                  text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-md flex-shrink-0
+                                  ${p.diff === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                    : p.diff === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'}
+                                `}>
+                                  {p.diff}
+                                </span>
+                                
+                                <a 
+                                  href={p.lc} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  onClick={(e) => e.stopPropagation()} 
+                                  className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-colors border border-white/10 flex-shrink-0"
+                                >
+                                  LC <ExternalLink size={10} />
+                                </a>
+                              </div>
+                            );
+                          })}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* ══════════════════════════════
           TAB: SYSTEM DESIGN
       ══════════════════════════════ */}
       {activeTab === "system" && (
-        <div className="max-w-full">
-          <div style={{ marginBottom: 20, fontFamily: "'Courier New', monospace", fontSize: 11, color: "#6B7280" }}>
-            Click any card to expand architecture breakdown, key components & concepts.
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-4 max-w-full"
+        >
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <p className="text-sm text-slate-400 font-mono">
+              <span className="text-amber-400 font-bold">PRO TIP:</span> Click any card to expand architecture breakdown, key components & concepts.
+            </p>
           </div>
-          <div style={{ display: "grid", gap: 12 }}>
+          
+          <div className="grid gap-4 md:grid-cols-2">
             {systemDesignTopics.map((t) => {
               const isOpen = openItem === t.id;
               return (
-                <div key={t.id} style={{ border: `1px solid ${isOpen ? t.color + "50" : "rgba(255,255,255,0.07)"}`, borderRadius: 14, background: isOpen ? `${t.color}08` : "rgba(255,255,255,0.02)", transition: "all 0.25s", overflow: "hidden" }}>
-                  <div onClick={() => setOpenItem(isOpen ? null : t.id)} style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 20px", cursor: "pointer" }}>
-                    <div style={{ fontSize: 24, flexShrink: 0 }}>{t.icon}</div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                        <span style={{ fontWeight: 600, fontSize: 15, color: "#f1f5f9" }}>{t.title}</span>
+                <div 
+                  key={t.id} 
+                  className={`rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col ${isOpen ? 'shadow-xl md:col-span-2' : 'hover:border-white/20'}`}
+                  style={{ 
+                    borderColor: isOpen ? `${t.color}50` : "rgba(255,255,255,0.06)",
+                    background: isOpen ? `linear-gradient(to bottom right, rgba(255,255,255,0.02), ${t.color}08)` : "rgba(255,255,255,0.02)"
+                  }}
+                >
+                  <div 
+                    onClick={() => setOpenItem(isOpen ? null : t.id)} 
+                    className="flex items-center gap-4 p-5 cursor-pointer group flex-1"
+                  >
+                    <div 
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-inner transition-transform group-hover:scale-110 group-hover:rotate-3"
+                      style={{ background: `${t.color}15`, border: `1px solid ${t.color}30` }}
+                    >
+                      {t.icon}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <h3 className="font-bold text-slate-200 text-lg truncate group-hover:text-white transition-colors">{t.title}</h3>
                         <Tag label={t.tag} color={t.color} />
                         <Tag label={t.difficulty} color={diffColor[t.difficulty]} />
                       </div>
-                      <div style={{ fontSize: 12, color: "#6B7280", marginTop: 3, fontStyle: "italic" }}>{t.desc}</div>
+                      <p className="text-xs text-slate-500 truncate">{t.desc}</p>
                     </div>
-                    <span style={{ color: t.color, fontSize: 16, transition: "transform 0.2s", transform: isOpen ? "rotate(90deg)" : "none", display: "inline-block" }}>›</span>
+                    
+                    <ChevronRight 
+                      className={`text-slate-500 transition-transform duration-300 flex-shrink-0 ${isOpen ? "rotate-90" : ""}`} 
+                      style={{ color: isOpen ? t.color : undefined }}
+                    />
                   </div>
 
-                  {isOpen && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "20px 22px", display: "grid", gap: 18 }}>
-                      {/* Key Components */}
-                      <div>
-                        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: t.color, marginBottom: 10, textTransform: "uppercase" }}>Key Components</div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                          {t.keyComponents.map((c) => (
-                            <div key={c} style={{ fontSize: 12, color: "#cbd5e1", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", padding: "5px 12px", borderRadius: 8 }}>
-                              {c}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden border-t border-white/5 bg-black/40"
+                      >
+                        <div className="p-6 grid gap-6 md:grid-cols-2">
+                          <div className="space-y-4 md:col-span-2 text-sm text-slate-300 leading-relaxed border-l-2 pl-4" style={{ borderColor: t.color }}>
+                            {t.desc}
+                          </div>
+                          
+                          {/* Key Components */}
+                          <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 flex items-center gap-2" style={{ color: t.color }}>
+                              <Layers size={14} /> Key Components
                             </div>
-                          ))}
+                            <div className="flex flex-wrap gap-2">
+                              {t.keyComponents.map((c) => (
+                                <div key={c} className="text-xs font-medium text-slate-300 bg-black/40 border border-white/10 px-3 py-1.5 rounded-lg shadow-inner">
+                                  {c}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Concepts */}
+                          <div className="bg-white/5 p-4 rounded-xl border border-white/5">
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 text-slate-400 flex items-center gap-2">
+                              <BookOpen size={14} /> Must-Know Concepts
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {t.concepts.map((c) => (
+                                <span key={c} className="text-[11px] font-mono text-slate-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-md">
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Resources */}
+                          <div className="md:col-span-2 flex flex-wrap gap-3 pt-2">
+                            {t.resources.map((r) => (
+                              <a 
+                                key={r.label} 
+                                href={r.url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="flex items-center gap-2 text-xs font-bold transition-all hover:scale-105"
+                                style={{ 
+                                  color: t.color, 
+                                  background: `${t.color}15`, 
+                                  border: `1px solid ${t.color}30`, 
+                                  padding: "8px 16px", 
+                                  borderRadius: "10px" 
+                                }}
+                              >
+                                <Play size={12} fill="currentColor" /> {r.label}
+                              </a>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                      {/* Concepts */}
-                      <div>
-                        <div style={{ fontFamily: "'Courier New', monospace", fontSize: 10, letterSpacing: 3, color: "#9CA3AF", marginBottom: 10, textTransform: "uppercase" }}>Must-Know Concepts</div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                          {t.concepts.map((c) => (
-                            <span key={c} style={{ fontSize: 11, color: "#9CA3AF", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 6, fontFamily: "'Courier New', monospace" }}>
-                              {c}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Resources */}
-                      <div style={{ display: "flex", gap: 8 }}>
-                        {t.resources.map((r) => (
-                          <a key={r.label} href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: t.color, textDecoration: "none", background: `${t.color}12`, border: `1px solid ${t.color}30`, padding: "4px 12px", borderRadius: 8, fontFamily: "'Courier New', monospace" }}>
-                            {r.label} ↗
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* ══════════════════════════════
           TAB: BACKEND Q&A
       ══════════════════════════════ */}
       {activeTab === "backend" && (
-        <div className="max-w-full">
-          <div style={{ marginBottom: 20, fontFamily: "'Courier New', monospace", fontSize: 11, color: "#6B7280" }}>
-            Click any question to reveal a concise interview-ready answer.
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          className="space-y-6 max-w-4xl mx-auto"
+        >
+          <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-2xl p-5 text-center shadow-lg">
+            <p className="text-sm text-slate-300 font-medium">
+              <span className="text-purple-400 font-bold mr-2">BACKEND INTERVIEW VAULT</span> 
+              Click any question to reveal a concise, interview-ready answer.
+            </p>
           </div>
-          <div style={{ display: "grid", gap: 14 }}>
+          
+          <div className="grid gap-6">
             {backendSections.map((sec) => {
               const isSecOpen = openItem === sec.id;
               return (
-                <div key={sec.id} style={{ border: `1px solid ${isSecOpen ? sec.color + "40" : "rgba(255,255,255,0.06)"}`, borderRadius: 14, background: isSecOpen ? `${sec.color}07` : "rgba(255,255,255,0.02)", transition: "all 0.25s", overflow: "hidden" }}>
+                <div 
+                  key={sec.id} 
+                  className={`rounded-2xl border transition-all duration-300 overflow-hidden shadow-lg ${isSecOpen ? '' : 'hover:border-white/20'}`}
+                  style={{ 
+                    borderColor: isSecOpen ? `${sec.color}40` : "rgba(255,255,255,0.08)",
+                    background: isSecOpen ? `linear-gradient(to bottom, ${sec.color}08, rgba(0,0,0,0.2))` : "rgba(255,255,255,0.02)"
+                  }}
+                >
                   {/* section header */}
-                  <div onClick={() => setOpenItem(isSecOpen ? null : sec.id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "15px 20px", cursor: "pointer" }}>
-                    <span style={{ fontSize: 20 }}>{sec.icon}</span>
-                    <span style={{ fontWeight: 600, fontSize: 15, color: "#f1f5f9", flex: 1 }}>{sec.title}</span>
-                    <span style={{ fontSize: 11, color: "#6B7280", fontFamily: "'Courier New', monospace" }}>{sec.questions.length} questions</span>
-                    <span style={{ color: sec.color, fontSize: 16, transition: "transform 0.2s", transform: isSecOpen ? "rotate(90deg)" : "none", display: "inline-block" }}>›</span>
+                  <div 
+                    onClick={() => setOpenItem(isSecOpen ? null : sec.id)} 
+                    className="flex items-center gap-4 p-5 cursor-pointer group bg-white/5"
+                  >
+                    <div 
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-inner transition-transform group-hover:scale-110"
+                      style={{ background: `${sec.color}15`, border: `1px solid ${sec.color}30` }}
+                    >
+                      {sec.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-slate-200 text-lg group-hover:text-white transition-colors">{sec.title}</h3>
+                      <p className="text-xs font-mono text-slate-500 mt-1">{sec.questions.length} Questions</p>
+                    </div>
+                    <div 
+                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${isSecOpen ? 'bg-white/10' : 'bg-transparent'}`}
+                    >
+                      <ChevronRight 
+                        className={`transition-transform duration-300 ${isSecOpen ? "rotate-90" : ""}`} 
+                        style={{ color: sec.color }}
+                      />
+                    </div>
                   </div>
 
-                  {isSecOpen && (
-                    <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                      {sec.questions.map((item, qi) => {
-                        const qKey = `${sec.id}-${qi}`;
-                        const ansOpen = openAnswer === qKey;
-                        return (
-                          <div key={qi} style={{ borderBottom: qi < sec.questions.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                            {/* question row */}
-                            <div onClick={() => setOpenAnswer(ansOpen ? null : qKey)} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 20px 12px 52px", cursor: "pointer", background: ansOpen ? "rgba(255,255,255,0.03)" : "transparent" }}>
-                              <div style={{ width: 20, height: 20, borderRadius: 5, border: `1.5px solid ${ansOpen ? sec.color : "rgba(255,255,255,0.12)"}`, background: ansOpen ? `${sec.color}20` : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: sec.color, fontSize: 10 }}>{ansOpen ? "−" : "+"}</div>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.5 }}>{item.q}</div>
-                                <div style={{ display: "flex", gap: 5, marginTop: 5, flexWrap: "wrap" }}>
-                                  {item.tags.map((tg) => <Tag key={tg} label={tg} color={sec.color} />)}
+                  <AnimatePresence>
+                    {isSecOpen && (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden border-t border-white/5 bg-black/20"
+                      >
+                        <div className="divide-y divide-white/5">
+                          {sec.questions.map((item, qi) => {
+                            const qKey = `${sec.id}-${qi}`;
+                            const ansOpen = openAnswer === qKey;
+                            return (
+                              <div key={qi} className="group/q">
+                                {/* question row */}
+                                <div 
+                                  onClick={() => setOpenAnswer(ansOpen ? null : qKey)} 
+                                  className={`flex items-start gap-4 p-4 cursor-pointer transition-colors ${ansOpen ? 'bg-white/5' : 'hover:bg-white/5'}`}
+                                >
+                                  <div 
+                                    className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 transition-colors mt-0.5 text-lg font-light leading-none`}
+                                    style={{ 
+                                      border: `1px solid ${ansOpen ? sec.color : "rgba(255,255,255,0.15)"}`, 
+                                      background: ansOpen ? `${sec.color}20` : "transparent",
+                                      color: ansOpen ? sec.color : "#94a3b8"
+                                    }}
+                                  >
+                                    {ansOpen ? "−" : "+"}
+                                  </div>
+                                  <div className="flex-1 pt-0.5">
+                                    <div className={`text-[15px] font-medium leading-relaxed transition-colors ${ansOpen ? 'text-white' : 'text-slate-300 group-hover/q:text-slate-200'}`}>
+                                      {item.q}
+                                    </div>
+                                    <div className="flex flex-wrap gap-2 mt-2.5">
+                                      {item.tags.map((tg) => <Tag key={tg} label={tg} color={sec.color} />)}
+                                    </div>
+                                  </div>
                                 </div>
+                                
+                                {/* answer */}
+                                <AnimatePresence>
+                                  {ansOpen && (
+                                    <motion.div 
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="pb-5 pr-5 pl-[3.25rem]">
+                                        <div 
+                                          className="p-5 rounded-xl shadow-inner text-[14px] leading-relaxed relative"
+                                          style={{ 
+                                            background: `${sec.color}08`, 
+                                            border: `1px solid ${sec.color}20`,
+                                            color: "#cbd5e1"
+                                          }}
+                                        >
+                                          <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl opacity-50" style={{ background: sec.color }}></div>
+                                          {item.answer}
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
                               </div>
-                            </div>
-                            {/* answer */}
-                            {ansOpen && (
-                              <div style={{ padding: "0 20px 14px 84px" }}>
-                                <div style={{ background: `${sec.color}08`, border: `1px solid ${sec.color}25`, borderRadius: 10, padding: "12px 16px", fontSize: 12.5, color: "#94a3b8", lineHeight: 1.7 }}>
-                                  {item.answer}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* ── FOOTER ── */}
-      <div style={{ textAlign: "center", padding: "20px 16px 36px", fontFamily: "'Courier New', monospace", fontSize: 10, color: "#374151", borderTop: "1px solid rgba(255,255,255,0.04)", marginTop: 8 }}>
-        70 DSA problems · 10 system design topics · 30+ backend Q&A · all in one place
+      <div className="text-center pt-8 pb-4 mt-8 border-t border-white/5">
+        <p className="font-mono text-[10px] text-slate-500 uppercase tracking-[0.2em]">
+          70 DSA problems · 10 system design topics · 30+ backend Q&A · DevForge OS
+        </p>
       </div>
     </div>
   );

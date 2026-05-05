@@ -7,6 +7,7 @@ Upgrades vs original:
 """
 
 import logging
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -21,11 +22,39 @@ logger = logging.getLogger("devforge.dsa")
 router = APIRouter()
 
 
+DEFAULT_DSA_PROBLEMS = [
+    ("Two Sum", "Hash Map", "Easy"), ("Valid Parentheses", "Stack", "Easy"), ("Best Time to Buy and Sell Stock", "Sliding Window", "Easy"),
+    ("Contains Duplicate", "Hash Map", "Easy"), ("Valid Anagram", "Hash Map", "Easy"), ("Product of Array Except Self", "Prefix/Suffix", "Medium"),
+    ("Maximum Subarray", "Kadane", "Medium"), ("Merge Intervals", "Intervals", "Medium"), ("Binary Search", "Binary Search", "Easy"),
+    ("Search in Rotated Sorted Array", "Binary Search", "Medium"), ("Longest Substring Without Repeating Characters", "Sliding Window", "Medium"),
+    ("Minimum Window Substring", "Sliding Window", "Hard"), ("3Sum", "Two Pointers", "Medium"), ("Container With Most Water", "Two Pointers", "Medium"),
+    ("Linked List Cycle", "Linked List", "Easy"), ("Reverse Linked List", "Linked List", "Easy"), ("Merge Two Sorted Lists", "Linked List", "Easy"),
+    ("LRU Cache", "Design", "Medium"), ("Number of Islands", "BFS/DFS", "Medium"), ("Clone Graph", "Graph", "Medium"),
+    ("Course Schedule", "Topological Sort", "Medium"), ("Pacific Atlantic Water Flow", "BFS/DFS", "Medium"), ("Binary Tree Level Order Traversal", "Tree/BFS", "Medium"),
+    ("Validate Binary Search Tree", "Tree/DFS", "Medium"), ("Lowest Common Ancestor", "Tree", "Medium"), ("Kth Smallest Element in BST", "Tree", "Medium"),
+    ("Climbing Stairs", "Dynamic Programming", "Easy"), ("House Robber", "Dynamic Programming", "Medium"), ("Coin Change", "Dynamic Programming", "Medium"),
+    ("Longest Increasing Subsequence", "Dynamic Programming", "Medium"), ("Word Break", "Dynamic Programming", "Medium"), ("Combination Sum", "Backtracking", "Medium"),
+    ("Permutations", "Backtracking", "Medium"), ("Subsets", "Backtracking", "Medium"), ("Top K Frequent Elements", "Heap", "Medium"),
+    ("Find Median from Data Stream", "Heap", "Hard"), ("Kth Largest Element", "Heap", "Medium"), ("Implement Trie", "Trie", "Medium"),
+    ("Word Search", "Backtracking", "Medium"), ("Decode Ways", "Dynamic Programming", "Medium"), ("Graph Valid Tree", "Union Find", "Medium"),
+    ("Merge K Sorted Lists", "Heap/Linked List", "Hard"),
+]
+
+async def ensure_default_problems(db: AsyncSession, user_id: int):
+    existing = await db.execute(select(DSAProblem.id).where(DSAProblem.user_id == user_id).limit(1))
+    if existing.scalar_one_or_none() is not None:
+        return
+    for title, pattern, difficulty in DEFAULT_DSA_PROBLEMS:
+        db.add(DSAProblem(user_id=user_id, title=title, pattern=pattern, difficulty=difficulty, completed=False))
+    await db.commit()
+
+
 @router.get("", response_model=list[DSAProblemOut])
 async def list_problems(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    await ensure_default_problems(db, current_user.id)
     result = await db.execute(
         select(DSAProblem)
         .where(DSAProblem.user_id == current_user.id)
@@ -75,7 +104,7 @@ async def update_problem(
 @router.post("/{problem_id}/complete", response_model=DSAProblemOut)
 async def complete_problem(
     problem_id: int,
-    body: dict = {},
+    body: DSAProblemUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -94,12 +123,24 @@ async def complete_problem(
         raise HTTPException(status_code=404, detail="Problem not found")
 
     problem.completed = True
-    if body.get("time_taken") is not None:
-        problem.time_taken = int(body["time_taken"])
-    if body.get("confidence") is not None:
-        problem.confidence = int(body["confidence"])
-    if body.get("reflection"):
-        problem.reflection = str(body["reflection"])
+    data = body.model_dump(exclude_none=True)
+    if data.get("time_taken") is not None:
+        problem.time_taken = int(data["time_taken"])
+    if data.get("confidence") is not None:
+        problem.confidence = max(1, min(5, int(data["confidence"])))
+    if data.get("reflection"):
+        problem.reflection = str(data["reflection"])
+
+    today = datetime.utcnow().date()
+    if current_user.last_active:
+        last = current_user.last_active.date()
+        if last == today - timedelta(days=1):
+            current_user.streak = (current_user.streak or 0) + 1
+        elif last < today - timedelta(days=1):
+            current_user.streak = 1
+    else:
+        current_user.streak = 1
+    current_user.last_active = datetime.utcnow()
 
     await db.commit()
     await db.refresh(problem)

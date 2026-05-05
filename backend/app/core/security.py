@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 from jose import jwt
 import bcrypt
+from app.core.config import settings
 
-# Configuration (In production, load these from .env)
-SECRET_KEY = "DEVFORGE_SUPER_SECRET_KEY_CHANGEME"
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 week
 

@@ -95,10 +95,10 @@ export const completeDSAProblem = (id: number, data: object) =>
   });
 
 // ─── Code Execution ──────────────────────────────────────────────
-export const executeCode = (code: string, language: string = "python") =>
-  apiFetch<{ stdout?: string; stderr?: string }>(`${API_BASE}/api/execute`, {
+export const executeCode = (code: string, language: string = "python", problemTitle?: string) =>
+  apiFetch<{ stdout?: string; stderr?: string; test_results?: any }>(`${API_BASE}/api/execute`, {
     method: "POST",
-    body: JSON.stringify({ code, language }),
+    body: JSON.stringify({ code, language, problem_title: problemTitle }),
   });
 
 // ─── Applications & Interviews ───────────────────────────────────
@@ -178,4 +178,43 @@ export const aiWorkflowPrep = (goal: string) =>
   apiFetch<{ architecture: string; model: string }>(`${API_BASE}/api/ai/workflow-prep`, {
     method: "POST",
     body: JSON.stringify({ goal }),
+  });
+
+// ─── V4 AI Assistant / Focus / Feature Gates ───────────────────
+export const askAssistant = (data: {
+  message: string;
+  context?: string;
+  selected_text?: string;
+  mode?: 'quick' | 'balanced' | 'deep';
+  model?: string;
+}) => apiFetch<{ response: string; model: string; mode: string; fallback: boolean; remaining_today?: number }>(`${API_BASE}/api/assistant/chat`, {
+  method: 'POST',
+  body: JSON.stringify(data),
+});
+
+export const getAssistantModels = () =>
+  apiFetch(`${API_BASE}/api/assistant/models`);
+
+export const logFocusSession = (data: {
+  context: string;
+  task_title?: string;
+  target_minutes: number;
+  elapsed_seconds: number;
+  completed: boolean;
+  difficulty?: string;
+}) => apiFetch(`${API_BASE}/api/focus/sessions`, {
+  method: 'POST',
+  body: JSON.stringify(data),
+});
+
+export const getFocusSummary = () =>
+  apiFetch(`${API_BASE}/api/focus/summary`);
+
+export const getEntitlements = () =>
+  apiFetch(`${API_BASE}/api/entitlements`);
+
+export const executeCodeWithTests = (code: string, tests: any[], functionName = 'solve', problemTitle?: string) =>
+  apiFetch<{ stdout?: string; stderr?: string; exit_code?: number; test_results?: any[]; safety_note?: string }>(`${API_BASE}/api/execute`, {
+    method: 'POST',
+    body: JSON.stringify({ code, language: 'python', tests, function_name: functionName, problem_title: problemTitle }),
   });
